@@ -32,10 +32,17 @@ namespace Movies.Application.Repositories
             return Task.FromResult(_movies.AsEnumerable());
         }
 
-        //获取单个
+        //通过id获取单个
         public Task<Movie?> GetByIdAsync(Guid id)
         {
            var movie = _movies.SingleOrDefault(x => x.Id == id);
+            return Task.FromResult(movie);
+        }
+
+        //通过slug获取单个
+        public Task<Movie?> GetBySlugAsync(string slug)
+        {
+            var movie = _movies.SingleOrDefault(x => x.Slug == slug);
             return Task.FromResult(movie);
         }
 

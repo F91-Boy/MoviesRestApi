@@ -12,6 +12,8 @@ namespace Movies.Application.Repositories
         Task<bool> CreateAsync(Movie movie);
 
         Task<Movie?> GetByIdAsync(Guid id);
+        Task<Movie?> GetBySlugAsync(string slug);
+  
 
         Task<IEnumerable<Movie>> GetAllAsync();
 
