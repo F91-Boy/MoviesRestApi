@@ -17,7 +17,7 @@ namespace Movies.Application.Models
 
         public string Slug => GenerateSlug();
 
-        public required List<string> Genders { get; init; } = [];
+        public required List<string> Genres { get; init; } = [];
 
 
         private string GenerateSlug()
