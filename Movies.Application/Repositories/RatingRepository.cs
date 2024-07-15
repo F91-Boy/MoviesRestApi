@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Movies.Application.Database;
+using Movies.Application.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +54,18 @@ namespace Movies.Application.Repositories
                         from ratings
                         where movieId = @movieId
                 """, new { movieId , userId }, cancellationToken: token));
+        }
+
+        //获取所有评分
+        public async Task<IEnumerable<MovieRating>> GetRatingsForUserAsync(Guid userId, CancellationToken token = default)
+        {
+            using var connection = await _dbConnectionFactory.CreateConnectionAsync(token);
+            return await connection.QueryAsync<MovieRating>(new CommandDefinition("""
+                select r.rating,r.movieId,m.slug
+                from ratings r
+                inner join movies m on r.movieId = m.id
+                where userId = @userId
+                """, new { userId }, cancellationToken: token));
         }
 
         //给电影打评分
