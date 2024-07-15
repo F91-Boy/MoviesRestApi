@@ -19,5 +19,9 @@ namespace Movies.Contracts.Responses
         public required int YearOfRelease { get; init; }
 
         public required IEnumerable<string> Genres { get; init; } = Enumerable.Empty<string>();
+
+        //评分相关
+        public float? Rating { get; init; }
+        public int? UserRating { get; init; }
     }
 }

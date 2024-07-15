@@ -19,6 +19,10 @@ namespace Movies.Application.Models
 
         public required List<string> Genres { get; init; } = [];
 
+        //评分相关
+        public float? Rating { get; set; }
+        public int? UserRating { get; set; }
+
 
         private string GenerateSlug()
         {

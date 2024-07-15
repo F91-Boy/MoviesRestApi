@@ -21,6 +21,7 @@ namespace Movies.Application.Database
         {
             using var connection = await _dbConnectionFactory.CreateConnectionAsync();
 
+            //添加电影表
             await connection.ExecuteAsync("""
                 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'movies')
                 BEGIN
@@ -47,6 +48,18 @@ namespace Movies.Application.Database
                     CREATE TABLE genres (
                         movieId UNIQUEIDENTIFIER REFERENCES movies(Id),
                         name NVARCHAR(50) NOT NULL
+                    );
+                END
+                """);
+
+            await connection.ExecuteAsync("""
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'ratings')
+                BEGIN
+                    CREATE TABLE ratings (
+                        userId UNIQUEIDENTIFIER,
+                        movieId UNIQUEIDENTIFIER REFERENCES movies(Id),
+                        rating FLOAT,
+                        primary key(userId,movieId)
                     );
                 END
                 """);
