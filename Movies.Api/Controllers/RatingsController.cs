@@ -13,11 +13,20 @@ namespace Movies.Api.Controllers
     {
         [Authorize]
         [HttpPut(ApiEndpoints.Movies.Rate)]
-        public async Task<IActionResult> RateMovie([FromRoute] Guid id, 
-            [FromBody]RateMovieRequest request,CancellationToken token)
+        public async Task<IActionResult> RateMovie([FromRoute] Guid id,
+            [FromBody] RateMovieRequest request, CancellationToken token)
         {
             var userId = HttpContext.GetUserId();
-            var result = await _ratingService.RateMovieAsync(id,request.Rating,userId!.Value,token);
+            var result = await _ratingService.RateMovieAsync(id, request.Rating, userId!.Value, token);
+            return result ? Ok() : NotFound();
+        }
+
+        [Authorize]
+        [HttpDelete(ApiEndpoints.Movies.DeleteRating)]
+        public async Task<IActionResult> DeleteRating([FromRoute] Guid id, CancellationToken token)
+        {
+            var userId = HttpContext.GetUserId();
+            var result = await _ratingService.DeleteRatingAsync(id, userId!.Value, token);
             return result ? Ok() : NotFound();
         }
     }

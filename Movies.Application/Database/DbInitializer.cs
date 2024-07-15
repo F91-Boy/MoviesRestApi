@@ -21,7 +21,7 @@ namespace Movies.Application.Database
         {
             using var connection = await _dbConnectionFactory.CreateConnectionAsync();
 
-            //添加电影表
+            //添加电影表 movies
             await connection.ExecuteAsync("""
                 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'movies')
                 BEGIN
@@ -34,6 +34,7 @@ namespace Movies.Application.Database
                 END
                 """);
 
+            //添加唯一索引,保证slug是唯一的 
             await connection.ExecuteAsync("""
                 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'movies_slug_idx' AND object_id = OBJECT_ID('movies'))
                 BEGIN
@@ -42,6 +43,7 @@ namespace Movies.Application.Database
                 END
                 """);
 
+            //添加类别表 genres
             await connection.ExecuteAsync("""
                 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'genres')
                 BEGIN
@@ -52,6 +54,7 @@ namespace Movies.Application.Database
                 END
                 """);
 
+            //添加评分表 ratings
             await connection.ExecuteAsync("""
                 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'ratings')
                 BEGIN

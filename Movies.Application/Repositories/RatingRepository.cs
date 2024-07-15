@@ -17,6 +17,19 @@ namespace Movies.Application.Repositories
             _dbConnectionFactory = dbConnectionFactory;
         }
 
+        //删除评分
+        public async Task<bool> DeleteRatingAsync(Guid movieId, Guid userId, CancellationToken token = default)
+        {
+            using var connection = await _dbConnectionFactory.CreateConnectionAsync(token);
+            var result = await connection.ExecuteAsync(new CommandDefinition("""
+                delete from ratings
+                where movieId = @movieId and userId = @userId
+                """, new {userId,movieId},cancellationToken:token));
+
+            return result > 0;
+        }
+
+        //获取电影评分
         public async Task<float?> GetRatingAsync(Guid movieId, CancellationToken token = default)
         {
             using var connection = await _dbConnectionFactory.CreateConnectionAsync(token);
@@ -26,6 +39,7 @@ namespace Movies.Application.Repositories
                 """,new {movieId},cancellationToken:token));
         }
 
+        //获取该用户打的电影评分
         public async Task<(float? Rating, int? UserRating)> GetRatingAsync(Guid movieId, Guid userId, CancellationToken token = default)
         {
             using var connection = await _dbConnectionFactory.CreateConnectionAsync(token);
@@ -41,6 +55,7 @@ namespace Movies.Application.Repositories
                 """, new { movieId , userId }, cancellationToken: token));
         }
 
+        //给电影打评分
         public async Task<bool> RateMovieAsync(Guid movieId, int rating, Guid userId, CancellationToken token = default)
         {
             //insert into ratings(userId,movieId,rating)
