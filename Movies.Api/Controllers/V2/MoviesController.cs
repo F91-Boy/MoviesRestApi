@@ -11,7 +11,7 @@ using Movies.Contracts.Requests;
 
 namespace Movies.Api.Controllers.V2
 {
-    [ApiVersion("2.0",Deprecated = false)]
+    [ApiVersion("2.0",Deprecated = true)]
     [ApiController]
     public class MoviesController(IMovieService _movieService) : ControllerBase
     {
