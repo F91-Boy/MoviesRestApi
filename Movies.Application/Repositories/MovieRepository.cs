@@ -78,10 +78,20 @@ namespace Movies.Application.Repositories
         }
 
         //获取所有
-        public async Task<IEnumerable<Movie>> GetAllAsync(Guid? userId = default, CancellationToken token = default)
+        public async Task<IEnumerable<Movie>> GetAllAsync(GetAllMoviesOptions options, CancellationToken token = default)
         {
             using var connection = await _dbConnectionFactory.CreateConnectionAsync(token);
-            var result = await connection.QueryAsync(new CommandDefinition("""
+
+            var orderClause = string.Empty;
+            if (options.SortField is not null) 
+            {
+                orderClause = $"""
+                    ,m.{options.SortField}
+                    order by m.{options.SortField}{(options.SortOrder == SortOrder.Ascending ? " asc" : " desc")}
+                    """;
+            }
+
+            var result = await connection.QueryAsync(new CommandDefinition($"""
                 select m.*,
                        string_agg(g.name,',') as genres,
                        round(avg(r.rating),1) as rating,
@@ -91,8 +101,15 @@ namespace Movies.Application.Repositories
                 left join ratings r on m.id = r.movieId
                 left join ratings myr on  m.id = myr.movieId 
                        and myr.userId = @userId
-                group by m.id,m.slug,m.title,m.yearofrelease,myr.rating;
-                """, parameters: new { userId }, cancellationToken: token));
+                where (@title is null or m.title like '%' + @title + '%')
+                and (@yearofrelease is null or m.yearofrelease = @yearofrelease)
+                group by m.id,m.slug,m.title,m.yearofrelease,myr.rating {orderClause}
+                """, parameters: new
+            { 
+                userId =  options.UserId,
+                title = options.Title,
+                yearofrelease = options.YearOfRelease
+            }, cancellationToken: token));
             return result.Select(x => new Movie
             {
                 Id = x.id,
@@ -115,7 +132,7 @@ namespace Movies.Application.Repositories
                     left join ratings r on m.id = r.movieId
                     left join ratings myr on  m.id = myr.movieId and myr.userId = @userId
                     where id = @id
-                    group by id,userrating
+                    group by id,slug,title,yearofrelease,myr.rating
                     """, parameters: new { id, userId }, cancellationToken: token));
 
             if (movie is null)
@@ -147,7 +164,7 @@ namespace Movies.Application.Repositories
                     left join ratings r on m.id = r.movieId
                     left join ratings myr on  m.id = myr.movieId and myr.userId = @userId
                     where slug = @slug
-                    group by id,userrating
+                    group by id,slug,title,yearofrelease,myr.rating
                     """, parameters: new { slug, userId }, cancellationToken: token));
 
             if (movie is null)

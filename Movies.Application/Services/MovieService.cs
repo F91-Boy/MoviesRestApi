@@ -14,14 +14,17 @@ namespace Movies.Application.Services
         private readonly IMovieRepository _movieRepository;
         private readonly IRatingRepository _ratingRepository;
         private readonly IValidator<Movie> _movieValidator;
+        private readonly IValidator<GetAllMoviesOptions> _optionsValidator;
 
         public MovieService(IMovieRepository movieRepository, 
             IValidator<Movie> movieValidator, 
-            IRatingRepository ratingRepository)
+            IRatingRepository ratingRepository,
+            IValidator<GetAllMoviesOptions> optionsValidator)
         {
             _movieRepository = movieRepository;
             _movieValidator = movieValidator;
             _ratingRepository = ratingRepository;
+            _optionsValidator = optionsValidator;
         }
 
         //创建
@@ -38,9 +41,11 @@ namespace Movies.Application.Services
         }
 
         //获取所有
-        public async Task<IEnumerable<Movie>> GetAllAsync(Guid? userId = default, CancellationToken token = default)
+        public async Task<IEnumerable<Movie>> GetAllAsync(GetAllMoviesOptions options, CancellationToken token = default)
         {
-            return await _movieRepository.GetAllAsync(userId, token);
+            await _optionsValidator.ValidateAndThrowAsync(options,cancellationToken: token);
+
+            return await _movieRepository.GetAllAsync(options, token);
         }
 
         //通过id获取单个

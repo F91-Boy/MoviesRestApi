@@ -27,11 +27,11 @@ namespace Movies.Api.Mapping
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static Movie MapToMovie(this UpdateMovieRequest request,Guid id)
+        public static Movie MapToMovie(this UpdateMovieRequest request, Guid id)
         {
             return new Movie
             {
-                Id = id,    
+                Id = id,
                 Title = request.Title,
                 YearOfRelease = request.YearOfRelease,
                 Genres = request.Genres.ToList()
@@ -45,7 +45,7 @@ namespace Movies.Api.Mapping
         /// <returns></returns>
         public static MovieResponse MapToResponse(this Movie movie)
         {
-            return new MovieResponse 
+            return new MovieResponse
             {
                 Id = movie.Id,
                 Title = movie.Title,
@@ -67,21 +67,45 @@ namespace Movies.Api.Mapping
         {
             return new MoviesResponse
             {
-               Items = movies.Select(MapToResponse)
+                Items = movies.Select(MapToResponse)
             };
 
         }
 
-
+        /// <summary>
+        ///  带电影的评分集合 map 成 带电影的评分集合的响应体
+        /// </summary>
+        /// <param name="ratings"></param>
+        /// <returns></returns>
         public static IEnumerable<MovieRatingResponse> MapToResponse(this IEnumerable<MovieRating> ratings)
         {
-            return ratings.Select(x => new MovieRatingResponse { 
+            return ratings.Select(x => new MovieRatingResponse
+            {
                 MovieId = x.MovieId,
                 Rating = x.Rating,
                 Slug = x.Slug
             });
-          
-
         }
+
+
+        public static GetAllMoviesOptions MapToOptions(this GetAllMoviesRequest request)
+        {
+            return new GetAllMoviesOptions
+            {
+                Title = request.Title,
+                YearOfRelease = request.Year,
+                SortField = request.SortBy?.Trim('+', '-'),
+                SortOrder = request.SortBy is null ? SortOrder.Unsorted :
+                           (request.SortBy.StartsWith('-') ? SortOrder.Descending : SortOrder.Ascending),
+            };
+        }
+
+
+        public static GetAllMoviesOptions WithUserId(this GetAllMoviesOptions options, Guid? userId)
+        {
+            options.UserId = userId;
+            return options;
+        }
+
     }
 }
