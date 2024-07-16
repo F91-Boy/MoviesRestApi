@@ -90,25 +90,36 @@ namespace Movies.Application.Repositories
                     order by m.{options.SortField}{(options.SortOrder == SortOrder.Ascending ? " asc" : " desc")}
                     """;
             }
+            else
+            {
+                orderClause = $"""
+                    order by m.id
+                    """;
+            }
 
             var result = await connection.QueryAsync(new CommandDefinition($"""
-                select m.*,
-                       string_agg(g.name,',') as genres,
-                       round(avg(r.rating),1) as rating,
-                       myr.rating as userrating 
-                from movies m 
-                left join genres g on m.id = g.movieId
-                left join ratings r on m.id = r.movieId
-                left join ratings myr on  m.id = myr.movieId 
-                       and myr.userId = @userId
-                where (@title is null or m.title like '%' + @title + '%')
-                and (@yearofrelease is null or m.yearofrelease = @yearofrelease)
-                group by m.id,m.slug,m.title,m.yearofrelease,myr.rating {orderClause}
-                """, parameters: new
+            select m.*,
+                   string_agg(g.name,',') as genres,
+                   round(avg(r.rating),1) as rating,
+                   myr.rating as userrating 
+            from movies m 
+            left join genres g on m.id = g.movieId
+            left join ratings r on m.id = r.movieId
+            left join ratings myr on  m.id = myr.movieId 
+                   and myr.userId = @userId
+            where (@title is null or m.title like '%' + @title + '%')
+            and (@yearofrelease is null or m.yearofrelease = @yearofrelease)
+            group by m.id,m.slug,m.title,m.yearofrelease,myr.rating {orderClause}
+            offset @pageOffset rows
+            fetch next @pageSize rows only
+            """,
+            parameters: new
             { 
                 userId =  options.UserId,
                 title = options.Title,
-                yearofrelease = options.YearOfRelease
+                yearofrelease = options.YearOfRelease,
+                pageSize = options.PageSize,
+                pageOffset = (options.Page-1)*options.PageSize,
             }, cancellationToken: token));
             return result.Select(x => new Movie
             {
@@ -183,6 +194,17 @@ namespace Movies.Application.Repositories
             }
 
             return movie;
+        }
+
+        //获取符合条件的电影数量
+        public async Task<int> GetCountAsync(string? title, int? yearOfRelease, CancellationToken token = default)
+        {
+            using var connection = await _dbConnectionFactory.CreateConnectionAsync(token);
+            return await connection.QuerySingleAsync<int>(new CommandDefinition("""
+                select count(id) from movies
+                where (@title is null or title like '%'+@title+'%')
+                and (@yearOfRelease is null or yearofrelease = @yearOfRelease)
+                """, new {title,yearOfRelease,},cancellationToken:token));
         }
 
         //更新

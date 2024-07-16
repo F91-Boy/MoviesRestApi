@@ -60,6 +60,12 @@ namespace Movies.Application.Services
             return await _movieRepository.GetBySlugAsync(slug, userId, token);
         }
 
+        //获取符合条件的电影数
+        public async Task<int> GetCountAsync(string? title, int? yearOfRelease, CancellationToken token = default)
+        {
+           return await _movieRepository.GetCountAsync(title, yearOfRelease, token);    
+        }
+
         //更新
         public async Task<Movie?> UpdateAsync(Movie movie, Guid? userId = default, CancellationToken token = default)
         {

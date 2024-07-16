@@ -20,6 +20,11 @@ namespace Movies.Application.Validators
             RuleFor(x => x.SortField)
                 .Must(x => x is null || AcceptableSortFields.Contains(x, StringComparer.OrdinalIgnoreCase))
                 .WithMessage("排序的字段只能是'title'或者'yearofrelease'");
+
+            RuleFor(x => x.Page).GreaterThanOrEqualTo(1);
+
+            RuleFor(x=>x.PageSize).InclusiveBetween(1, 25)
+                .WithMessage("每页最多获取1到25条电影信息");
         }
     }
 }

@@ -21,5 +21,7 @@ namespace Movies.Application.Services
 
         Task<bool> DeleteByIdAsync(Guid id,CancellationToken token = default);
 
+        Task<int> GetCountAsync(string? title, int? yearOfRelease, CancellationToken token = default);
+
     }
 }
