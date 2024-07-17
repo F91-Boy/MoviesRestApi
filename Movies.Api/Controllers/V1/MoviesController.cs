@@ -28,7 +28,9 @@ namespace Movies.Api.Controllers.V1
             await _movieService.CreateAsync(movie, token);
 
             await _outputCacheStore.EvictByTagAsync("movies",token);//令缓存失效
-            return CreatedAtAction(nameof(Get), new { idOrSlug = movie.Id }, movie);
+            
+            var response = movie.MapToResponse();
+            return CreatedAtAction(nameof(Get), new { idOrSlug = movie.Id }, response);
         }
 
         [HttpGet(ApiEndpoints.V1.Movies.Get)]
@@ -66,7 +68,8 @@ namespace Movies.Api.Controllers.V1
             var movies = await _movieService.GetAllAsync(options, token);
             var movieCount = await _movieService.GetCountAsync(options.Title, options.YearOfRelease, token);
 
-            var moviesResponse = movies.MapToResponse(request.Page, request.PageSize, movieCount);
+            //var moviesResponse = movies.MapToResponse(request.Page, request.PageSize, movieCount);
+            var moviesResponse = movies.MapToResponse(request.Page.Value, request.PageSize.Value, movieCount);
             return Ok(moviesResponse);
         }
 

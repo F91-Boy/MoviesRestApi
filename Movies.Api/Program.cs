@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Movies.Api.Auth;
+using Movies.Api.Endpoints;
 using Movies.Api.Health;
 using Movies.Api.Mapping;
 using Movies.Api.Swagger;
@@ -15,10 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-
-
+//builder.Services.AddControllers();
 
 //授权策略
 builder.Services.AddAuthorization(x=>
@@ -127,7 +125,9 @@ app.UseAuthorization();
 app.UseOutputCache();
 
 app.UseMiddleware<ValidationMappingMiddleware>();
-app.MapControllers();
+
+//app.MapControllers();
+app.MapApiEndpoints();//启用最小api
 
 var dbInitializer = app.Services.GetRequiredService<DbInitializer>();
 await dbInitializer.InitializeAsync();  
