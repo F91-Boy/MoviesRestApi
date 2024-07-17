@@ -46,11 +46,10 @@ namespace Movies.Application.Repositories
             using var connection = await _dbConnectionFactory.CreateConnectionAsync(token);
             return await connection.QuerySingleOrDefaultAsync<(float?,int?)>(new CommandDefinition("""
                 select round(avg(rating),1),
-                        (select rating
+                        (select top 1 rating
                         from ratings
                         where movieId = @movieId
-                          and userId = @userId 
-                          limit 1)
+                          and userId = @userId )
                         from ratings
                         where movieId = @movieId
                 """, new { movieId , userId }, cancellationToken: token));
