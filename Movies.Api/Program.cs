@@ -23,7 +23,10 @@ builder.Services.AddControllers();
 //授权策略
 builder.Services.AddAuthorization(x=>
 {
-    x.AddPolicy(AuthConstants.AdminUserPolicyName,p=>p.RequireClaim(AuthConstants.AdminUserClaimName, "true"));
+    //x.AddPolicy(AuthConstants.AdminUserPolicyName,p=>p.RequireClaim(AuthConstants.AdminUserClaimName, "true"));
+    //混合策略
+    x.AddPolicy(AuthConstants.AdminUserPolicyName, p => p.AddRequirements(new AdminAuthRequirement(config["ApiKey"]!)));
+
     x.AddPolicy(AuthConstants.TrustedMemberPolicyName, p=>p.RequireAssertion(c=>
         c.User.HasClaim(m=>m is {Type:AuthConstants.AdminUserClaimName,Value:"true" })||
         c.User.HasClaim(m => m is { Type: AuthConstants.TrustedMemberClaimName, Value: "true" }))
@@ -85,7 +88,7 @@ builder.Services.AddOutputCache(x =>
     x.AddPolicy("MovieCache", c =>
         c.Cache()
         .Expire(TimeSpan.FromMinutes(1))
-        //.SetVaryByQuery(["title", "yearOfRelease", "sortBy", "page", "pageSize"])
+        .SetVaryByQuery(["title", "yearOfRelease", "sortBy", "page", "pageSize"])
         .Tag("movies"));
 });
 
