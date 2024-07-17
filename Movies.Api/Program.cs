@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Movies.Api.Auth;
+using Movies.Api.Health;
 using Movies.Api.Mapping;
 using Movies.Api.Swagger;
 using Movies.Application;
@@ -71,7 +72,29 @@ builder.Services.AddApplication();
 //添加数据库
 builder.Services.AddDatabase(config.GetConnectionString("SqlServer")!);
 
+//添加健康检查
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>(DatabaseHealthCheck.Name);
+
+//响应缓存
+//builder.Services.AddResponseCaching();
+//输出缓存
+builder.Services.AddOutputCache(x =>
+{
+    x.AddBasePolicy(c => c.Cache());
+    x.AddPolicy("MovieCache", c =>
+        c.Cache()
+        .Expire(TimeSpan.FromMinutes(1))
+        //.SetVaryByQuery(["title", "yearOfRelease", "sortBy", "page", "pageSize"])
+        .Tag("movies"));
+});
+
+
+builder.Services.AddScoped<ApiKeyAuthFilter>();
+
 var app = builder.Build();
+
+app.MapHealthChecks("_health");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -91,6 +114,14 @@ app.UseHttpsRedirection();
 //授权与认证
 app.UseAuthentication();
 app.UseAuthorization();
+
+
+//app.UseCors();
+//响应缓存
+//app.UseResponseCaching();
+
+//输出缓存,默认只缓存OK200,GET和HEAD请求
+app.UseOutputCache();
 
 app.UseMiddleware<ValidationMappingMiddleware>();
 app.MapControllers();

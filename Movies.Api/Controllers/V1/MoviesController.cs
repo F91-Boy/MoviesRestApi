@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Movies.Api.Auth;
 using Movies.Api.Mapping;
 using Movies.Application.Models;
@@ -14,8 +15,9 @@ namespace Movies.Api.Controllers.V1
 {
     [ApiVersion("1.0",Deprecated = false)]
     [ApiController]
-    public class MoviesController(IMovieService _movieService) : ControllerBase
+    public class MoviesController(IMovieService _movieService,IOutputCacheStore _outputCacheStore) : ControllerBase
     {
+        //[ServiceFilter(typeof(ApiKeyAuthFilter))]
         [Authorize(AuthConstants.TrustedMemberPolicyName)]
         [HttpPost(ApiEndpoints.V1.Movies.Create)]
         [ProducesResponseType(typeof(MovieResponse),StatusCodes.Status201Created)]
@@ -24,10 +26,14 @@ namespace Movies.Api.Controllers.V1
         {
             var movie = request.MapToMovie();
             await _movieService.CreateAsync(movie, token);
+
+            await _outputCacheStore.EvictByTagAsync("movies",token);//令缓存失效
             return CreatedAtAction(nameof(Get), new { idOrSlug = movie.Id }, movie);
         }
 
         [HttpGet(ApiEndpoints.V1.Movies.Get)]
+        [OutputCache(PolicyName = "MovieCache")]
+        //[ResponseCache(Duration =30,VaryByHeader = "Accept,Accept-Encoding",Location = ResponseCacheLocation.Any)]
         [ProducesResponseType(typeof(MovieResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken token)
@@ -48,6 +54,8 @@ namespace Movies.Api.Controllers.V1
         }
 
         [HttpGet(ApiEndpoints.V1.Movies.GetAll)]
+        [OutputCache(PolicyName = "MovieCache")]
+        //[ResponseCache(Duration = 30, VaryByQueryKeys = ["title","yearOfRelease","sortBy","page","pageSize"],VaryByHeader = "Accept,Accept-Encoding", Location = ResponseCacheLocation.Any)]
         [ProducesResponseType(typeof(MovieResponse),StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromQuery] GetAllMoviesRequest request, CancellationToken token)
         {
@@ -78,7 +86,11 @@ namespace Movies.Api.Controllers.V1
             {
                 return NotFound();
             }
+
+
             var response = movie.MapToResponse();
+
+            await _outputCacheStore.EvictByTagAsync("movies", token);//令缓存失效
             return Ok(response);
         }
 
@@ -93,6 +105,8 @@ namespace Movies.Api.Controllers.V1
             {
                 return NotFound();
             }
+
+            await _outputCacheStore.EvictByTagAsync("movies", token);//令缓存失效
             return Ok();
         }
 
