@@ -8,6 +8,7 @@ namespace Movies.Contracts.Requests
 {
     public class RateMovieRequest
     {
-        public required int Rating { get; init; }
+        //public required int Rating { get; init; }
+        public  int? Rating { get; init; }
     }
 }

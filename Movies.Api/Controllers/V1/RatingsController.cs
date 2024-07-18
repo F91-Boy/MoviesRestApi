@@ -23,7 +23,8 @@ namespace Movies.Api.Controllers.V1
             [FromBody] RateMovieRequest request, CancellationToken token)
         {
             var userId = HttpContext.GetUserId();
-            var result = await _ratingService.RateMovieAsync(id, request.Rating, userId!.Value, token);
+            //var result = await _ratingService.RateMovieAsync(id, request.Rating, userId!.Value, token);
+            var result = await _ratingService.RateMovieAsync(id, request.Rating.GetValueOrDefault(5), userId!.Value, token);
             return result ? Ok() : NotFound();
         }
 
